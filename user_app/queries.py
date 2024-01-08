@@ -14,8 +14,12 @@ class UserQuery(graphene.ObjectType):
 
 
     def resolve_get_user(self, info, **kwargs):
-        user = CustomerUser.objects.filter(id=kwargs.get('id')).last()
-        if user:
-            return user
-        else:
-            return GraphQLError("User does not exist")
+        try:
+            user = CustomerUser.objects.filter(id=kwargs.get('id')).last()
+            if user:
+                return user
+            else:
+                return GraphQLError("User does not exist")
+            
+        except Exception as e:
+            return GraphQLError(str(e))

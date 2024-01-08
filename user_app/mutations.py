@@ -23,18 +23,21 @@ class CreateUserMutation(graphene.Mutation):
         address = graphene.String(required=False)
 
     def mutate(self, info, first_name, last_name, username, email, password, confirm_password, mobile=None, address=None):
+        try:
+            if password != confirm_password:
+                return CreateUserMutation(data=None, message="Wrong password")
 
-        if password != confirm_password:
-            return CreateUserMutation(data=None, message="Wrong password")
+            user = CustomerUser.objects.filter(email=email).last()
+            if user:
+                return CreateUserMutation(data=None, message="User already exists")
 
-        user = CustomerUser.objects.filter(email=email).last()
-        if user:
-            return CreateUserMutation(data=None, message="User already exists")
-
-        user = CustomerUser(first_name=first_name, last_name=last_name, username=username, email=email, mobile=mobile, address=address)
-        user.set_password(password)
-        user.save()
-        return CreateUserMutation(data=user, message="User created")
+            user = CustomerUser(first_name=first_name, last_name=last_name, username=username, email=email, mobile=mobile, address=address)
+            user.set_password(password)
+            user.save()
+            return CreateUserMutation(data=user, message="User created")
+        
+        except Exception as e:
+            return GraphQLError(str(e))
 
 
 class UpdateUserMutation(graphene.Mutation):
@@ -48,24 +51,28 @@ class UpdateUserMutation(graphene.Mutation):
         address = graphene.String(required=False)
 
     def mutate(self, info, id, first_name=None, last_name=None, mobile=None, address=None):
-        customer = CustomerUser.objects.filter(id=id).last()
-        if not customer:
-            return UpdateUserMutation(data=None, message="User does not exist")
+        try:
+            customer = CustomerUser.objects.filter(id=id).last()
+            if not customer:
+                return UpdateUserMutation(data=None, message="User does not exist")
 
-        if first_name:
-            customer.first_name = first_name
+            if first_name:
+                customer.first_name = first_name
 
-        if last_name:
-            customer.last_name = last_name
+            if last_name:
+                customer.last_name = last_name
 
-        if mobile:
-            customer.mobile = mobile
+            if mobile:
+                customer.mobile = mobile
 
-        if address:
-            customer.address = address
+            if address:
+                customer.address = address
 
-        customer.save()
-        return UpdateUserMutation(data=customer, message="User details updated")
+            customer.save()
+            return UpdateUserMutation(data=customer, message="User details updated")
+        
+        except Exception as e:
+            return GraphQLError(str(e))
 
 
 class DeleteUserMutation(graphene.Mutation):
@@ -75,13 +82,17 @@ class DeleteUserMutation(graphene.Mutation):
         id = graphene.ID(required=True)
 
     def mutate(self, info, id):
-        customer = CustomerUser.objects.filter(id=id).last()
-        if not customer:
-            return DeleteUserMutation(message="User does not exist")
+        try:
+            customer = CustomerUser.objects.filter(id=id).last()
+            if not customer:
+                return DeleteUserMutation(message="User does not exist")
 
-        customer.delete()
+            customer.delete()
 
-        return DeleteUserMutation(message="User deleted")
+            return DeleteUserMutation(message="User deleted")
+        
+        except Exception as e:
+            return GraphQLError(str(e))
 
 
 class UserLoginMutation(graphene.Mutation):
