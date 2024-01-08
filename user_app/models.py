@@ -8,6 +8,7 @@ from django.db import models
 class CustomerUser(User):
     mobile = models.CharField(max_length=13, null=True, blank=True)
     address = models.CharField(max_length=120,  null=True, blank=True)
+    aadhar_number = models.CharField(max_length=30, null=True, blank=True)
 
 
     def __str__(self):
